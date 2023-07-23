@@ -21,19 +21,28 @@ public abstract class BackupProvider<TSettings> : IBackupProvider
 
 	public async Task<IEnumerable<File>> GetLocalChangesAsync(IDisposable? client, string folder)
 	{		
-		var cloudFiles = await GetCloudFilesAsync(client, folder);
+		var cloudFiles = (await GetCloudFilesAsync(client, folder)).ToDictionary(item => item.Path);
 		var localFiles = GetLocalFiles(Path.Combine(BaseFolder, folder));
-		return localFiles.Except(cloudFiles);
+		return localFiles.Where(file => IsNewOrModified(file, cloudFiles));
+	}
+
+	private bool IsNewOrModified(File localFile, Dictionary<string, File> cloudFiles)
+	{
+		if (cloudFiles.TryGetValue(localFile.Path, out var cloudFile))
+		{
+			if (cloudFile.DateModified > localFile.DateModified) return false;
+		}
+
+		return true;
 	}
 
 	private IEnumerable<File> GetLocalFiles(string folder)
 	{
 		List<File> results = new();
 
-		FolderHelper.EnumFolders(folder, (dir) =>
+		FolderHelper.EnumFiles(folder, (fileInfo) =>
 		{
-			var files = dir.GetFiles();
-			results.AddRange(files.Select(fi => new File(fi.FullName.Substring(BaseFolder.Length + 1), fi.Length, fi.LastWriteTimeUtc)));
+			results.Add(new File(fileInfo.FullName.Substring(BaseFolder.Length + 1), fileInfo.Length, fileInfo.LastWriteTimeUtc));
 			return EnumFilesResult.Continue;
 		});
 
