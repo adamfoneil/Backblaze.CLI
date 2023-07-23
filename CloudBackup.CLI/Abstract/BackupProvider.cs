@@ -4,16 +4,20 @@ using Microsoft.Extensions.Logging;
 
 namespace CloudBackup.CLI.Abstract;
 
-public abstract class CloudBackupTarget<TConfig> : ICloudTargetProvider<TConfig> where TConfig : ICloudTargetSettings
+public abstract class BackupProvider<TSettings> : IBackupProvider
 {
-	private readonly string BaseFolder;
-	private readonly ILogger<CloudBackupTarget<TConfig>> Logger;
+	protected readonly string BaseFolder;
+	protected readonly ILogger Logger;
+	protected readonly TSettings Settings;
 
-	public CloudBackupTarget(string baseFolder, ILogger<CloudBackupTarget<TConfig>> logger)
+	public BackupProvider(string baseFolder, TSettings settings, ILogger logger)
 	{
 		BaseFolder = baseFolder;
+		Settings = settings;
 		Logger = logger;
 	}
+
+	public abstract string Type { get; }
 
 	public async Task<IEnumerable<File>> GetLocalChangesAsync(string folder)
 	{
@@ -51,7 +55,7 @@ public abstract class CloudBackupTarget<TConfig> : ICloudTargetProvider<TConfig>
 				Logger.LogInformation("{@file}", change);
 			}
 		}
-	}
-
-	public record File(string Path, long Length, DateTime DateModified) { }
+	}	
 }
+
+public record File(string Path, long Length, DateTime DateModified) { }
