@@ -16,12 +16,16 @@ public class LocalProvider : BackupProvider<LocalProviderSettings>
 
 	public override string Type => "Local";
 
-	protected override Task<IEnumerable<Abstract.File>> GetCloudFilesAsync(string folder)
+	protected override bool HasInternalClient => false;
+
+	protected override Task<IDisposable> GetClientAsync() => throw new NotImplementedException();
+
+	protected override Task<IEnumerable<Abstract.File>> GetCloudFilesAsync(IDisposable? client, string folder)
 	{
 		throw new NotImplementedException();
 	}
 
-	protected override Task UploadFileAsync(Abstract.File file)
+	protected override Task UploadFileAsync(IDisposable? client, string basePath, Abstract.File file)
 	{
 		throw new NotImplementedException();
 	}

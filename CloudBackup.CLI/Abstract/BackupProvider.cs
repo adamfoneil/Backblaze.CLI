@@ -19,9 +19,9 @@ public abstract class BackupProvider<TSettings> : IBackupProvider
 
 	public abstract string Type { get; }
 
-	public async Task<IEnumerable<File>> GetLocalChangesAsync(string folder)
-	{
-		var cloudFiles = await GetCloudFilesAsync(folder);
+	public async Task<IEnumerable<File>> GetLocalChangesAsync(IDisposable? client, string folder)
+	{		
+		var cloudFiles = await GetCloudFilesAsync(client, folder);
 		var localFiles = GetLocalFiles(Path.Combine(BaseFolder, folder));
 		return localFiles.Except(cloudFiles);
 	}
@@ -40,18 +40,24 @@ public abstract class BackupProvider<TSettings> : IBackupProvider
 		return results;
 	}
 
-	protected abstract Task<IEnumerable<File>> GetCloudFilesAsync(string folder);
+	protected virtual bool HasInternalClient => true;
 
-	protected abstract Task UploadFileAsync(File file);
+	protected abstract Task<IDisposable> GetClientAsync();
 
-	public async Task ExecuteAsync(IEnumerable<string> sources)
+	protected abstract Task<IEnumerable<File>> GetCloudFilesAsync(IDisposable? client, string folder);
+
+	protected abstract Task UploadFileAsync(IDisposable? client, string basePath, File file);
+
+	public async Task ExecuteAsync(IEnumerable<string> folders)
 	{
-		foreach (var source in sources)
+		using var client = (HasInternalClient) ? await GetClientAsync() : default;
+
+		foreach (var source in folders)
 		{
-			var changes = await GetLocalChangesAsync(source);
+			var changes = await GetLocalChangesAsync(client, source);
 			foreach (var change in changes)
 			{
-				await UploadFileAsync(change);
+				await UploadFileAsync(client, BaseFolder, change);
 				Logger.LogInformation("{@file}", change);
 			}
 		}

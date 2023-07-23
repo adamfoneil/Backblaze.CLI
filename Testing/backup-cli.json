@@ -1,0 +1,13 @@
+{
+    "BaseFolder" : "C:\\Users\\adamo\\OneDrive",
+    "Sources": [
+        "Music\\Afrobeta",
+        "Pictures\\Camera Roll\\Cyan Radius"
+    ],
+    "Backblaze" : {    
+        "AccountName" : "ao-backup",
+        "BucketName" : "adamfoneil-backup",
+        "PublicKey" : "001fcd3aa3d63980000000004",
+        "SecretKey" : "K001mbg7z02c9Ot7/cKDZKZlkfG2dHM"
+    }    
+}
