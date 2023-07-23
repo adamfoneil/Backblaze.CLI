@@ -1,4 +1,4 @@
-﻿namespace Backblaze.CLI.Static;
+﻿namespace CloudBackup.CLI.Static;
 
 public enum EnumFilesResult
 {

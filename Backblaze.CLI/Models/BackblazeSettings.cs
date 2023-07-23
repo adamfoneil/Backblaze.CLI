@@ -1,8 +1,8 @@
-﻿using Backblaze.CLI.Interfaces;
+﻿using CloudBackup.CLI.Interfaces;
 
-namespace Backblaze.CLI.Models;
+namespace CloudBackup.CLI.Models;
 
-public class Backblaze : ICloudTarget
+public class BackblazeSettings : ICloudTargetSettings
 {
 	public string Name { get; set; } = default!;
 	public string BucketName { get; set; } = default!;

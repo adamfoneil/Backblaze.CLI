@@ -5,7 +5,7 @@ var settings = FindSettings();
 Console.WriteLine($"name = {settings.Name}");
 Console.ReadLine();
 
-Backblaze.CLI.Models.Backblaze FindSettings()
+CloudBackup.CLI.Models.BackblazeSettings FindSettings()
 {
 	const string fileName = "backblaze.json";
 	var baseFolder = AppContext.BaseDirectory;
@@ -19,5 +19,5 @@ Backblaze.CLI.Models.Backblaze FindSettings()
 	}
 
 	var json = File.ReadAllText(configFile);
-	return JsonSerializer.Deserialize<Backblaze.CLI.Models.Backblaze>(json) ?? throw new Exception("Couldn't deserialize json");
+	return JsonSerializer.Deserialize<CloudBackup.CLI.Models.BackblazeSettings>(json) ?? throw new Exception("Couldn't deserialize json");
 }

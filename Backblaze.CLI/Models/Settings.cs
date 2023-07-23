@@ -1,10 +1,10 @@
-﻿using Backblaze.CLI.Interfaces;
+﻿using CloudBackup.CLI.Interfaces;
 
-namespace Backblaze.CLI.Models;
+namespace CloudBackup.CLI.Models;
 
 public class Settings
 {
 	public string BaseFolder { get; set; } = default!;
 	public string[] Sources { get; set; } = Array.Empty<string>();
-	public ICloudTarget[] Targets { get; set; } = Array.Empty<ICloudTarget>();
+	public ICloudTargetSettings[] Targets { get; set; } = Array.Empty<ICloudTargetSettings>();
 }
