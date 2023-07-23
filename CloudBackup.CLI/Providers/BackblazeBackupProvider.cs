@@ -29,14 +29,27 @@ public class BackblazeBackupProvider : BackupProvider<BackblazeSettings>
 
 		if (bucket is null)
 		{
-			var response = await backblazeClient.Buckets.CreateAsync(Settings.BucketName, BucketType.AllPrivate);
-			response.EnsureSuccessStatusCode();
-			bucket = response.Response;
+			var bucketResponse = await backblazeClient.Buckets.CreateAsync(Settings.BucketName, BucketType.AllPrivate);
+			bucketResponse.EnsureSuccessStatusCode();
+			bucket = bucketResponse.Response;
 		}
 
-		var results = await backblazeClient.Files.ListNamesAsync(bucket.BucketId);
-		results.EnsureSuccessStatusCode();
-		return results.Response.Files.Select(fi => new Abstract.File(fi.FileName, fi.ContentLength, fi.UploadTimestamp));
+		List<Abstract.File> results = new();
+		do
+		{
+			var response = await backblazeClient.Files.ListNamesAsync(new ListFileNamesRequest(bucket.BucketId)
+			{
+				Prefix = folder,
+				MaxFileCount = 200,
+				StartFileName = results.Any() ? results.Last().Path + "_" : default
+			});
+			response.EnsureSuccessStatusCode();
+			var page = response.Response.Files.Select(fi => new Abstract.File(fi.FileName, fi.ContentLength, fi.UploadTimestamp));
+			if (!page.Any()) break;
+			results.AddRange(page);
+		} while (true);
+
+		return results;
 	}
 
 	protected override async Task UploadFileAsync(IDisposable? client, string basePath, Abstract.File file)

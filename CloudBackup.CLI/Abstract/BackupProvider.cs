@@ -57,16 +57,20 @@ public abstract class BackupProvider<TSettings> : IBackupProvider
 
 	protected abstract Task UploadFileAsync(IDisposable? client, string basePath, File file);
 
-	public async Task ExecuteAsync(IEnumerable<string> folders)
+	public async Task ExecuteAsync(IEnumerable<string> folders, IProgress<Progress>? progress = null)
 	{
 		using var client = (HasInternalClient) ? await GetClientAsync() : default;
 
 		foreach (var source in folders)
 		{
-			var changes = await GetLocalChangesAsync(client, source);
+			var changes = (await GetLocalChangesAsync(client, source)).ToArray();
+			int total = changes.Length;
+			int count = 0;
 			foreach (var change in changes)
 			{
+				count++;
 				await UploadFileAsync(client, BaseFolder, change);
+				progress?.Report(new(source, count / (decimal)total));
 				Logger.LogInformation("{@file}", change);
 			}
 		}
@@ -74,3 +78,5 @@ public abstract class BackupProvider<TSettings> : IBackupProvider
 }
 
 public record File(string Path, long Length, DateTime DateModified) { }
+
+public record Progress(string Folder, decimal Percent) { }
