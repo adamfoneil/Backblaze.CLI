@@ -41,6 +41,11 @@ public class BackblazeBackupProvider : BackupProvider<BackblazeSettings>
 			{
 				Prefix = folder,
 				MaxFileCount = 200,
+				// Backblaze has a weird way (IMO) of getting the next "page" of results. You give it a file name,
+				// and it returns that (if found) with a max count of results following that file, sorted alphabetically I guess.
+				// To keep from returning a file more than once, I append an underscore to the last file in the result set
+				// so that it will skip that and move to the next. Presumably, the underscore makes it a non-existent file.
+				// I'm trying to prevent returning a page's last file as the first file of the next page.				
 				StartFileName = results.Any() ? results.Last().Path + "_" : default
 			});
 			response.EnsureSuccessStatusCode();
