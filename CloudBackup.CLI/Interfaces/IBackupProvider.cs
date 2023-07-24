@@ -2,6 +2,9 @@
 
 namespace CloudBackup.CLI.Interfaces;
 
+/// <summary>
+/// this is for runtime dispatcing in Main method if we have multiple providers created
+/// </summary>
 public interface IBackupProvider
 {
     string Type { get; }
