@@ -24,15 +24,8 @@ public class BackblazeBackupProvider : BackupProvider<BackblazeSettings>
 	protected override async Task<IEnumerable<Abstract.File>> GetCloudFilesAsync(IDisposable? client, string folder)
 	{
 		var backblazeClient = client as BackblazeClient ?? throw new Exception("Unexpected client object");
-
-		var bucket = await backblazeClient.Buckets.FindByNameAsync(Settings.BucketName);
-
-		if (bucket is null)
-		{
-			var bucketResponse = await backblazeClient.Buckets.CreateAsync(Settings.BucketName, BucketType.AllPrivate);
-			bucketResponse.EnsureSuccessStatusCode();
-			bucket = bucketResponse.Response;
-		}
+		
+		var bucket = await FindOrCreateBucketAsync(backblazeClient);
 
 		List<Abstract.File> results = new();
 		do
@@ -57,11 +50,26 @@ public class BackblazeBackupProvider : BackupProvider<BackblazeSettings>
 		return results;
 	}
 
+	private async Task<BucketItem> FindOrCreateBucketAsync(BackblazeClient backblazeClient)
+	{
+		var bucket = await backblazeClient.Buckets.FindByNameAsync(Settings.BucketName);
+
+		if (bucket is null)
+		{
+			var bucketResponse = await backblazeClient.Buckets.CreateAsync(Settings.BucketName, BucketType.AllPrivate);
+			bucketResponse.EnsureSuccessStatusCode();
+			bucket = bucketResponse.Response;
+		}
+
+		return bucket;
+	}
+
 	protected override async Task UploadFileAsync(IDisposable? client, string basePath, Abstract.File file)
 	{
 		var backblazeClient = client as BackblazeClient ?? throw new Exception("Unexpected client object");
 
-		var bucket = await backblazeClient.Buckets.FindByNameAsync(Settings.BucketName);
+		var bucket = await FindOrCreateBucketAsync(backblazeClient);
+
 		var path = Path.Combine(basePath, file.Path);
 		using var stream = System.IO.File.OpenRead(path);
 		var response = await backblazeClient.UploadAsync(bucket.BucketId, file.Path, stream);
